@@ -6,27 +6,35 @@ import com.allmuniz.api_interest_calculator.enums.InterestType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @Service
 public class InterestService {
 
     public ResponseEntity<InterestResponseDTO> calcularJuros(InterestRequestDTO request){
 
         var type = InterestType.fromId(request.type());
-        double c = request.capital();
-        double i = request.interestRate() / 100;
+        double capital = request.capital();
+        double porcentagemJuros = request.interestRate() / 100;
 
-        int t = request.typeTime() == 1 ? request.time() : request.time() * 12;
+        int tempo = request.typeTime() == 1 ? request.time() : request.time() * 12;
 
-        double M;
-        double J;
+        double montante;
+        double juros;
 
         if (type == InterestType.SIMPLE){
-            J =  c * i * t;
-            M = c + J;
+            juros =  capital * porcentagemJuros * tempo;
+            montante = capital + juros;
         } else {
-            M = c * Math.pow(1 + i, t);
-            J = M - c;
+            montante = capital * Math.pow(1 + porcentagemJuros, tempo);
+            juros = montante - capital;
         }
-        return ResponseEntity.ok(new InterestResponseDTO(M, J));
+
+        BigDecimal montanteFormatted = BigDecimal.valueOf(montante).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal jurosFormatted = BigDecimal.valueOf(juros).setScale(2, RoundingMode.HALF_UP);
+
+
+        return ResponseEntity.ok(new InterestResponseDTO(montanteFormatted.doubleValue(), jurosFormatted.doubleValue()));
     }
 }
