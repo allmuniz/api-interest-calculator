@@ -2,6 +2,8 @@
 
 Este projeto é uma API desenvolvida com **Java 21**, **Spring Boot** e **Gradle**, com o objetivo de calcular **juros simples e compostos** com ou sem aportes mensais. A API também fornece documentação interativa via Swagger.
 
+🖥️ O front-end deste projeto também foi desenvolvido por mim e está disponível [aqui](https://github.com/allmuniz/interest-calculator).
+
 ---
 
 ## 🚀 Tecnologias Utilizadas
