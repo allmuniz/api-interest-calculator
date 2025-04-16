@@ -12,29 +12,40 @@ import java.math.RoundingMode;
 @Service
 public class InterestService {
 
-    public ResponseEntity<InterestResponseDTO> calcularJuros(InterestRequestDTO request){
-
-        var type = InterestType.fromId(request.type());
-        double capital = request.capital();
-        double porcentagemJuros = request.interestRate() / 100;
-
-        int tempo = request.typeTime() == 1 ? request.time() : request.time() * 12;
-
-        double montante;
-        double juros;
-
-        if (type == InterestType.SIMPLE){
-            juros =  capital * porcentagemJuros * tempo;
-            montante = capital + juros;
-        } else {
-            montante = capital * Math.pow(1 + porcentagemJuros, tempo);
-            juros = montante - capital;
+    public ResponseEntity<InterestResponseDTO> calcularJuros(InterestRequestDTO request) {
+        // Validando tipo
+        InterestType type = InterestType.fromId(request.type());
+        if (type == null) {
+            return ResponseEntity.badRequest().build(); // ou lançar uma exceção customizada
         }
 
-        BigDecimal montanteFormatted = BigDecimal.valueOf(montante).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal jurosFormatted = BigDecimal.valueOf(juros).setScale(2, RoundingMode.HALF_UP);
+        // Conversão de dados de entrada para BigDecimal
+        BigDecimal capital = BigDecimal.valueOf(request.capital());
+        BigDecimal taxaJurosAnual = BigDecimal.valueOf(request.interestRate()).divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP);
+        int tempoAnos = request.time();
 
+        BigDecimal montante;
+        BigDecimal juros;
 
-        return ResponseEntity.ok(new InterestResponseDTO(montanteFormatted.doubleValue(), jurosFormatted.doubleValue()));
+        if (type == InterestType.SIMPLE) {
+            // Juros Simples: J = C * i * t ; M = C + J
+            System.out.println("Entrou no simples");
+            juros = capital.multiply(taxaJurosAnual).multiply(BigDecimal.valueOf(tempoAnos));
+            montante = capital.add(juros);
+        } else {
+            // Juros Compostos: M = C * (1 + i)^t ; J = M - C
+            System.out.println("Entrou no composto");
+            BigDecimal base = BigDecimal.ONE.add(taxaJurosAnual);
+            BigDecimal fator = base.pow(tempoAnos);
+            montante = capital.multiply(fator);
+            juros = montante.subtract(capital);
+        }
+
+        // Arredondando os valores para 2 casas decimais
+        BigDecimal montanteFinal = montante.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal jurosFinal = juros.setScale(2, RoundingMode.HALF_UP);
+
+        return ResponseEntity.ok(new InterestResponseDTO(montanteFinal.doubleValue(), jurosFinal.doubleValue()));
     }
+
 }

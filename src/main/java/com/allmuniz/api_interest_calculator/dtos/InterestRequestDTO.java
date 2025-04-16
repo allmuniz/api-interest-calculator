@@ -4,7 +4,6 @@ public record InterestRequestDTO(
         Double capital,
         Double interestRate,
         Integer time,
-        Integer typeTime,
         Integer type
 ) {
 }
